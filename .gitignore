@@ -1,0 +1,74 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local configurations
+config.json
+
+# Local Virtual iPod databases and files
+virtual_ipod/
+welcome.mp3
+temp_test.mp3
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# --- thêm bởi claude-code-template ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+appsettings.Production.json
+appsettings.*.local.json
+.claude/settings.local.json
+.claude/settings.json.bak
+.claude/settings.harness.json
+CLAUDE.local.md
+.check/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+bin/
+obj/
+.vs/
+*.user
+TestResults/
+target/
+cmake-build-*/
+out/
+compile_commands.json
+CMakeUserPresets.json
+vcpkg_installed/
+.cache/
+Thumbs.db
+node_modules/
+dist/
+build/
+coverage/
+
+# KL Music Manager runtime data (dev: data dir = repo root)
+stream_cache/
+packaging/out/
+library_cache/
+packaging/vendor-ffmpeg/
+device_cache.json
+
+# Local sample music for manual testing (copyrighted, never commit)
+music-sample/

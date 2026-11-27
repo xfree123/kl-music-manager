@@ -1,0 +1,26 @@
+{
+  "lint_scope": "all",
+  "extra_steps": [
+    {
+      "name": "py-compile",
+      "cmd": [
+        "python",
+        "-m",
+        "compileall",
+        "-q",
+        "app.py",
+        "ipod_manager.py",
+        "settings.py",
+        "converter.py",
+        "library_export.py",
+        "os_integration.py",
+        "artwork.py",
+        "folder_library.py",
+        "library_db.py",
+        "tag_editor.py",
+        "version.py",
+        "pygpod"
+      ]
+    }
+  ]
+}

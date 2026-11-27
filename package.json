@@ -1,0 +1,88 @@
+{
+  "name": "kl-music-manager",
+  "productName": "KL Music Manager",
+  "version": "1.1.0",
+  "description": "KL Music Manager: music player and iPod manager for macOS and Windows",
+  "author": "xfree123",
+  "homepage": "https://github.com/xfree123/kl-music-manager",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xfree123/kl-music-manager.git"
+  },
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"electron/tests/*.test.js\" \"tests/js/*.test.js\"",
+    "dist": "python packaging/build.py"
+  },
+  "devDependencies": {
+    "electron": "^45.5.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "io.github.xfree123.klmusicmanager",
+    "productName": "KL Music Manager",
+    "copyright": "Copyright © 2026 xfree123",
+    "directories": {
+      "output": "dist",
+      "buildResources": "packaging/out"
+    },
+    "files": [
+      "electron/**/*",
+      "!electron/tests/**",
+      "static/icons/app-icon.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "packaging/out/backend-dist/KL-Music-Manager-Backend",
+        "to": "backend"
+      },
+      {
+        "from": "packaging/out/ffmpeg",
+        "to": "ffmpeg"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      }
+    ],
+    "icon": "packaging/out/icon.png",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "KL-Music-Manager-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "license": "LICENSE"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.music"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Audio"
+    },
+    "executableName": "KL-Music-Manager",
+    "electronLanguages": [
+      "en-US",
+      "vi"
+    ],
+    "compression": "maximum"
+  }
+}

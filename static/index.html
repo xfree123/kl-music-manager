@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KL Music Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preload" href="fonts/Lexend-Variable.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="icon" type="image/png" href="icons/app-icon.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER / TITLE BAR -->
+        <header class="app-header">
+            <div class="brand">
+                <img src="icons/app-icon.png" alt="" class="brand-icon">
+                <h1>KL <span>Music Manager</span></h1>
+            </div>
+            <div class="connection-status" id="connection-status">
+                <span class="status-indicator online"></span>
+                <span id="connection-text">Virtual Mode</span>
+            </div>
+        </header>
+
+        <!-- PLAYER BAR -->
+        <section class="control-bar">
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <button class="ctrl-btn" id="prev-btn" title="Previous (Ctrl+←)">
+                    <svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#skip-back"></use></svg>
+                </button>
+                <button class="ctrl-btn play-pause" id="play-pause-btn" title="Play/Pause (Space)">
+                    <svg class="icon" id="play-icon" aria-hidden="true"><use href="icons/sprite.svg#play"></use></svg>
+                </button>
+                <button class="ctrl-btn" id="next-btn" title="Next (Ctrl+→)">
+                    <svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#skip-forward"></use></svg>
+                </button>
+            </div>
+
+            <!-- Current Track / Seek Info -->
+            <div class="now-playing-container">
+                <button class="mini-art" id="mini-art" title="Show Now Playing">
+                    <img id="mini-art-img" alt="" hidden>
+                    <span class="art-placeholder">♪</span>
+                </button>
+                <div class="now-playing-main">
+                    <div class="now-playing-info">
+                        <span id="current-track-title">No track loaded</span>
+                        <span id="current-track-artist">Double-click a track to play</span>
+                        <span class="track-format" id="current-track-format"></span>
+                    </div>
+                    <div class="seek-bar-wrapper">
+                        <span id="current-time">0:00</span>
+                        <input type="range" id="seek-slider" min="0" value="0" step="0.1" disabled>
+                        <span id="total-time">0:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shuffle / Repeat / Volume / System player -->
+            <div class="player-extras">
+                <button class="ctrl-btn small" id="shuffle-btn" title="Shuffle (S)">
+                    <svg class="icon" id="shuffle-icon" aria-hidden="true"><use href="icons/sprite.svg#shuffle"></use></svg>
+                </button>
+                <button class="ctrl-btn small" id="repeat-btn" title="Repeat: off (R)">
+                    <svg class="icon" id="repeat-icon" aria-hidden="true"><use href="icons/sprite.svg#repeat"></use></svg>
+                    <span class="repeat-one-badge" id="repeat-one-badge" hidden>1</span>
+                </button>
+                <div class="volume-control">
+                    <button class="ctrl-btn small" id="mute-btn" title="Mute (M)">
+                        <svg class="icon" id="volume-icon" aria-hidden="true"><use href="icons/sprite.svg#volume-2"></use></svg>
+                    </button>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" title="Volume (↑/↓)">
+                </div>
+                <div class="player-toggle-container" title="Play tracks with the operating system's default player">
+                    <span class="toggle-label">System Player</span>
+                    <label class="switch">
+                        <input type="checkbox" id="player-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- TOOLBAR -->
+        <section class="tool-bar">
+            <div class="view-switch" role="tablist">
+                <button class="view-tab active" id="view-library-btn" role="tab">Library</button>
+                <button class="view-tab" id="view-nowplaying-btn" role="tab">Now Playing</button>
+                <button class="view-tab" id="view-browse-btn" role="tab">Browse</button>
+                <button class="view-tab" id="view-manage-btn" role="tab" title="Select many tracks, export them, manage libraries (Ctrl+M)">Manage</button>
+            </div>
+            <div class="search-status" id="search-status"></div>
+            <div class="browse-chip" id="browse-chip" hidden>
+                <svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#tags"></use></svg>
+                <span id="browse-chip-text"></span>
+                <button type="button" id="browse-chip-clear" title="Show all tracks"><svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#x"></use></svg></button>
+            </div>
+
+            <!-- Action Buttons & Search -->
+            <div class="action-bar">
+                <button class="action-btn" id="add-track-btn" title="Import music into the library">
+                    <svg class="icon btn-img" aria-hidden="true"><use href="icons/sprite.svg#import"></use></svg> Import
+                </button>
+                <button class="action-btn" id="export-track-btn" title="Export Selected Track to Computer" disabled>
+                    <svg class="icon btn-img" aria-hidden="true"><use href="icons/sprite.svg#download"></use></svg> Export
+                </button>
+                <button class="action-btn danger" id="delete-track-btn" title="Delete Selected Track" disabled>
+                    <svg class="icon btn-img" aria-hidden="true"><use href="icons/sprite.svg#trash-2"></use></svg> Delete
+                </button>
+                
+                <div class="search-wrapper">
+                    <input type="search" id="search-input" placeholder="Search library… (/)" autocomplete="off">
+                    <svg class="icon search-icon" aria-hidden="true"><use href="icons/sprite.svg#search"></use></svg>
+                </div>
+
+                <!-- Tools Dropdown -->
+                <div class="dropdown">
+                    <button class="action-btn dropdown-toggle" id="tools-btn">
+                         Tools <svg class="icon chevron" aria-hidden="true"><use href="icons/sprite.svg#chevron-down"></use></svg>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" id="tool-repair"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#shield-check"></use></svg> Repair Checksums</a>
+                        <a href="#" id="tool-redetect"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#refresh-cw"></use></svg> Re-detect iPod / Rescan</a>
+                        <a href="#" id="tool-libraries"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#library"></use></svg> Manage Libraries…</a>
+                        <a href="#" id="tool-maintenance"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#wrench"></use></svg> Maintenance…</a>
+                        <a href="#" id="tool-library-source"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#folder-open"></use></svg> Library Source…</a>
+                        <a href="#" id="tool-export-tracks"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#list-music"></use></svg> Export Track List…</a>
+                        <a href="#" id="tool-export-library"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#library"></use></svg> Export Library Info…</a>
+                        <a href="#" id="tool-settings"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#settings"></use></svg> Settings…</a>
+                        <a href="#" id="tool-help"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#circle-help"></use></svg> User Guide (F1)</a>
+                        <a href="#" id="tool-about"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#info"></use></svg> About KL Music Manager</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN LAYOUT -->
+        <main class="app-body">
+            <!-- Left Side / Center: Tracks List -->
+            <section class="tracks-pane">
+                <div class="table-container" id="drop-zone">
+                    <div class="drop-overlay">
+                        <svg class="icon drop-icon" aria-hidden="true"><use href="icons/sprite.svg#upload"></use></svg>
+                        <h3>Drop audio files here to import them into the library</h3>
+                    </div>
+                    <table class="tracks-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;" data-sort="title">Title</th>
+                                <th style="width: 20%;" data-sort="artist">Artist</th>
+                                <th style="width: 20%;" data-sort="album">Album</th>
+                                <th style="width: 10%;" data-sort="genre">Genre</th>
+                                <th style="width: 80px;" data-sort="duration">Time</th>
+                                <th style="width: 80px;" data-sort="rating">Rating</th>
+                                <th style="width: 100px;" data-sort="play_count">Play Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracks-list-body">
+                            <tr>
+                                <td colspan="7" class="loading-cell">Loading iPod database...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- NOW PLAYING VIEW (thay chỗ bảng bài hát khi chọn tab Now Playing) -->
+            <section class="now-playing-view" id="now-playing-view" hidden>
+                <div class="np-backdrop" id="np-backdrop"></div>
+                <div class="np-stage">
+                    <div class="np-visual" id="np-visual" data-mode="cover">
+                        <div class="np-cover">
+                            <img id="np-cover-img" alt="" hidden>
+                            <div class="np-cover-placeholder" id="np-cover-placeholder">♪</div>
+                        </div>
+                        <canvas id="np-spectrum"></canvas>
+                    </div>
+                    <div class="np-modes">
+                        <button class="np-mode active" data-mode="cover" title="Album art">Cover</button>
+                        <button class="np-mode" data-mode="spectrum" title="Spectrum analyzer">Spectrum</button>
+                        <button class="np-mode" data-mode="both" title="Album art + spectrum">Both</button>
+                        <span class="np-mode-sep"></span>
+                        <button class="np-mode" id="np-style-btn" title="Spectrum style">Bars</button>
+                    </div>
+                    <div class="np-info">
+                        <div class="np-title" id="np-title">Nothing playing</div>
+                        <div class="np-artist" id="np-artist">Double-click a track in the Library to start</div>
+                        <div class="np-album" id="np-album"></div>
+                        <div class="np-format" id="np-format"></div>
+                    </div>
+                </div>
+                <aside class="np-queue">
+                    <div class="np-queue-header">
+                        <h3>Up Next</h3>
+                        <span class="np-queue-mode" id="np-queue-mode"></span>
+                    </div>
+                    <ol class="np-queue-list" id="np-queue-list"></ol>
+                </aside>
+            </section>
+
+            <!-- BROWSE VIEW: tag cloud theo genre / artist / album / year / playlist (js/browse.js) -->
+            <section class="browse-view" id="browse-view" hidden>
+                <div class="browse-header">
+                    <div class="browse-tabs" role="tablist" id="browse-tabs">
+                        <button class="browse-tab active" data-by="genre" role="tab">Genres</button>
+                        <button class="browse-tab" data-by="artist" role="tab">Artists</button>
+                        <button class="browse-tab" data-by="album" role="tab">Albums</button>
+                        <button class="browse-tab" data-by="year" role="tab">Years</button>
+                        <button class="browse-tab" data-by="playlist" role="tab">Playlists</button>
+                    </div>
+                    <div class="browse-summary" id="browse-summary"></div>
+                </div>
+                <div class="tag-cloud" id="tag-cloud"></div>
+            </section>
+
+            <!-- MANAGE VIEW: chọn nhiều bài + export hàng loạt + quản lý thư viện (js/manage.js) -->
+            <section class="manage-view" id="manage-view" hidden>
+                <div class="manage-side">
+                    <div class="manage-card">
+                        <div class="manage-card-head">
+                            <h3>Libraries</h3>
+                            <button type="button" class="btn secondary small" id="manage-add-lib" title="Add a music folder as a library">+ Add</button>
+                        </div>
+                        <ul class="manage-libs" id="manage-libs"></ul>
+                        <div class="form-status" id="manage-lib-status"></div>
+                    </div>
+                    <div class="manage-card manage-groups-card">
+                        <div class="browse-tabs manage-group-tabs" role="tablist" id="manage-group-tabs">
+                            <button class="browse-tab active" data-by="album" role="tab">Albums</button>
+                            <button class="browse-tab" data-by="artist" role="tab">Artists</button>
+                            <button class="browse-tab" data-by="genre" role="tab">Genres</button>
+                            <button class="browse-tab" data-by="playlist" role="tab">Playlists</button>
+                        </div>
+                        <input type="search" class="manage-filter" id="manage-group-filter" placeholder="Filter…" autocomplete="off">
+                        <ul class="manage-groups" id="manage-groups"></ul>
+                    </div>
+                </div>
+                <div class="manage-main">
+                    <div class="manage-toolbar">
+                        <input type="search" class="manage-filter" id="manage-search" placeholder="Filter tracks…" autocomplete="off">
+                        <span class="manage-count" id="manage-count">0 selected</span>
+                        <button type="button" class="btn secondary small" id="manage-select-shown">Select shown</button>
+                        <button type="button" class="btn secondary small" id="manage-clear">Clear</button>
+                        <button type="button" class="btn primary small" id="manage-export" disabled>
+                            <svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#download"></use></svg> Export…
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="tracks-table manage-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-check"><input type="checkbox" id="manage-check-all" title="Select / clear all shown tracks"></th>
+                                    <th>Title</th>
+                                    <th>Artist</th>
+                                    <th>Album</th>
+                                    <th class="col-time">Time</th>
+                                    <th class="col-type">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manage-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Sidebar -->
+            <aside class="sidebar-pane">
+                <div class="sidebar-section library-source-section">
+                    <h3>Library</h3>
+                    <button class="source-card" id="source-card" title="Change library source">
+                        <svg class="icon sidebar-icon" id="source-icon" aria-hidden="true"><use href="icons/sprite.svg#smartphone"></use></svg>
+                        <span class="source-text">
+                            <span class="source-name" id="source-name">iPod</span>
+                            <span class="source-path" id="source-path"></span>
+                        </span>
+                        <span class="source-change">Change</span>
+                    </button>
+                </div>
+                <div class="sidebar-section libraries-section">
+                    <div class="section-header">
+                        <h3>Libraries</h3>
+                        <span class="section-actions">
+                            <button class="small-add-btn" id="manage-libraries-btn" title="Manage libraries"><svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#settings"></use></svg></button>
+                            <button class="small-add-btn" id="add-library-btn" title="Add a music folder as a library">+</button>
+                        </span>
+                    </div>
+                    <ul class="library-list" id="library-list">
+                        <!-- js/libraries.js -->
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Media Categories</h3>
+                    <ul class="category-list">
+                        <li class="active" data-category="all">
+                            <svg class="icon sidebar-icon" aria-hidden="true"><use href="icons/sprite.svg#music"></use></svg> Music
+                        </li>
+                        <li data-category="podcasts">
+                            <svg class="icon sidebar-icon" aria-hidden="true"><use href="icons/sprite.svg#podcast"></use></svg> Podcasts
+                        </li>
+                        <li data-category="videos">
+                            <svg class="icon sidebar-icon" aria-hidden="true"><use href="icons/sprite.svg#clapperboard"></use></svg> Videos
+                        </li>
+                        <li data-category="photos">
+                            <svg class="icon sidebar-icon" aria-hidden="true"><use href="icons/sprite.svg#image"></use></svg> Photos
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-section playlists-section">
+                    <div class="section-header">
+                        <h3>Playlists</h3>
+                        <button class="small-add-btn" id="new-playlist-btn" title="New Playlist">+</button>
+                    </div>
+                    <ul class="playlist-list" id="playlist-list-body">
+                        <!-- Playlists loaded dynamically -->
+                    </ul>
+                </div>
+            </aside>
+        </main>
+
+        <!-- STATUS BAR / FOOTER -->
+        <footer class="app-status-bar">
+            <div class="device-stats">
+                <span id="device-model-label">Loading device...</span>
+                <span class="divider">|</span>
+                <span id="tracks-count-label">0 tracks</span>
+                <span class="divider">|</span>
+                <span id="mountpoint-label">Path: -</span>
+            </div>
+            
+            <div class="storage-stats-container">
+                <span class="storage-text" id="storage-label">Used: - / Total: -</span>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="storage-progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- METADATA EDITOR MODAL -->
+    <div class="modal-overlay" id="metadata-modal">
+        <div class="modal-card wide metadata-card">
+            <div class="modal-header">
+                <h2>Edit Track Metadata</h2>
+                <button class="close-btn" onclick="closeModal('metadata-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="metadata-form" class="metadata-layout">
+                    <input type="hidden" id="edit-track-id">
+                    <div class="cover-editor">
+                        <div class="cover-preview" id="edit-cover-preview">
+                            <img id="edit-cover-img" alt="" hidden>
+                            <span class="art-placeholder" id="edit-cover-placeholder">♪</span>
+                        </div>
+                        <div class="cover-actions" data-folder-only>
+                            <label class="btn secondary small" for="edit-cover-file">
+                                <svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#image-plus"></use></svg> Choose image…
+                            </label>
+                            <input type="file" id="edit-cover-file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" hidden>
+                            <button type="button" class="btn secondary small" id="edit-cover-remove">
+                                <svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#image-off"></use></svg> Remove
+                            </button>
+                            <label class="form-check small"><input type="checkbox" id="edit-cover-album"> Apply to the whole album</label>
+                            <small class="form-hint" id="edit-cover-status">JPEG or PNG; saved into the file (max 1200 px).</small>
+                        </div>
+                        <small class="form-hint" data-ipod-only>Album art can be edited for music folder libraries.</small>
+                    </div>
+                    <div class="metadata-fields">
+                        <div class="form-group">
+                            <label for="edit-title">Title</label>
+                            <input type="text" id="edit-title" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="edit-artist">Artist</label>
+                                <input type="text" id="edit-artist">
+                            </div>
+                            <div class="form-group half">
+                                <label for="edit-album-artist">Album artist</label>
+                                <input type="text" id="edit-album-artist">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-album">Album</label>
+                            <input type="text" id="edit-album">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="edit-genre">Genre</label>
+                                <input type="text" id="edit-genre" list="edit-genre-list">
+                                <datalist id="edit-genre-list"></datalist>
+                            </div>
+                            <div class="form-group half">
+                                <label for="edit-composer">Composer</label>
+                                <input type="text" id="edit-composer">
+                            </div>
+                        </div>
+                        <div class="form-row numbers">
+                            <div class="form-group">
+                                <label for="edit-year">Year</label>
+                                <input type="number" id="edit-year" min="0" max="2099">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-track-number">Track</label>
+                                <div class="of-pair">
+                                    <input type="number" id="edit-track-number" min="0" max="999">
+                                    <span data-folder-only>of</span>
+                                    <input type="number" id="edit-total-tracks" min="0" max="999" data-folder-only>
+                                </div>
+                            </div>
+                            <div class="form-group" data-folder-only>
+                                <label for="edit-disc-number">Disc</label>
+                                <div class="of-pair">
+                                    <input type="number" id="edit-disc-number" min="0" max="99">
+                                    <span>of</span>
+                                    <input type="number" id="edit-total-discs" min="0" max="99">
+                                </div>
+                            </div>
+                            <div class="form-group" data-folder-only>
+                                <label for="edit-bpm">BPM</label>
+                                <input type="number" id="edit-bpm" min="0" max="999">
+                            </div>
+                        </div>
+                        <div class="form-group" data-ipod-only>
+                            <label for="edit-rating">Rating (Stars)</label>
+                            <select id="edit-rating">
+                                <option value="0">☆☆☆☆☆ (0)</option>
+                                <option value="1">★☆☆☆☆ (1)</option>
+                                <option value="2">★★☆☆☆ (2)</option>
+                                <option value="3">★★★☆☆ (3)</option>
+                                <option value="4">★★★★☆ (4)</option>
+                                <option value="5">★★★★★ (5)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" data-folder-only>
+                            <label for="edit-comment">Comment</label>
+                            <textarea id="edit-comment" rows="2"></textarea>
+                        </div>
+                        <details class="form-group lyrics-group" data-folder-only>
+                            <summary>Lyrics</summary>
+                            <textarea id="edit-lyrics" rows="6"></textarea>
+                        </details>
+                        <div class="edit-file-info" id="edit-file-info"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('metadata-modal')">Cancel</button>
+                <button class="btn primary" id="save-metadata-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW PLAYLIST MODAL -->
+    <div class="modal-overlay" id="playlist-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Create New Playlist</h2>
+                <button class="close-btn" onclick="closeModal('playlist-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="playlist-name-input">Playlist Name</label>
+                    <input type="text" id="playlist-name-input" placeholder="e.g. Workout Hits" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('playlist-modal')">Cancel</button>
+                <button class="btn primary" id="create-playlist-submit">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPORT MUSIC MODAL -->
+    <div class="modal-overlay" id="add-music-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="import-title">Import Music</h2>
+                <button class="close-btn" onclick="closeModal('add-music-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-music-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="add-file-input">Audio files (MP3, M4A, FLAC, WAV…)</label>
+                        <div class="input-with-btn">
+                            <input type="file" id="add-file-input" accept="audio/*,.flac,.m4a,.alac,.aiff,.aif,.opus,.ogg" multiple>
+                            <button class="btn secondary electron-only" id="import-files-native" type="button">Files…</button>
+                            <button class="btn secondary electron-only" id="import-folder-native" type="button">Folder…</button>
+                        </div>
+                        <small class="form-hint" id="import-selection">No files selected. You can also drag files onto the track list.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="import-playlist">Add to playlist</label>
+                        <select id="import-playlist"></select>
+                        <input type="text" id="import-new-playlist" placeholder="New playlist name" hidden>
+                    </div>
+                    <details class="import-tags">
+                    <summary>Edit tags before import (single file only)</summary>
+                    <div class="form-group">
+                        <label for="add-title">Title (Optional)</label>
+                        <input type="text" id="add-title" placeholder="Extracted from tags if left blank">
+                    </div>
+                    <div class="form-group">
+                        <label for="add-artist">Artist (Optional)</label>
+                        <input type="text" id="add-artist">
+                    </div>
+                    <div class="form-group">
+                        <label for="add-album">Album (Optional)</label>
+                        <input type="text" id="add-album">
+                    </div>
+                    <div class="form-group">
+                        <label for="add-genre">Genre (Optional)</label>
+                        <input type="text" id="add-genre">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="add-year">Year (Optional)</label>
+                            <input type="number" id="add-year" min="0" max="2099">
+                        </div>
+                        <div class="form-group half">
+                            <label for="add-track-number">Track # (Optional)</label>
+                            <input type="number" id="add-track-number" min="0" max="999">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-rating">Rating (Optional)</label>
+                        <select id="add-rating">
+                            <option value="0">☆☆☆☆☆</option>
+                            <option value="1">★☆☆☆☆</option>
+                            <option value="2">★★☆☆☆</option>
+                            <option value="3">★★★☆☆</option>
+                            <option value="4">★★★★☆</option>
+                            <option value="5">★★★★★</option>
+                        </select>
+                    </div>
+                    </details>
+                </form>
+                <ul class="import-progress" id="import-progress"></ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('add-music-modal')">Close</button>
+                <button class="btn primary" id="add-track-submit">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HELP MODAL (static/help/index.html hiển thị static/help/guide.*.md) -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-card help-card">
+            <div class="modal-header">
+                <h2>User Guide · Hướng dẫn</h2>
+                <button class="close-btn" onclick="closeModal('help-modal')">&times;</button>
+            </div>
+            <iframe id="help-frame" title="User Guide"></iframe>
+        </div>
+    </div>
+
+    <!-- ABOUT MODAL -->
+    <div class="modal-overlay" id="about-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>About KL Music Manager</h2>
+                <button class="close-btn" onclick="closeModal('about-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table class="about-table" id="about-table"></table>
+                <p class="form-hint">Free software under the GNU GPL v3 or later. Bundles ffmpeg (GPLv3), Electron/Chromium and other open-source components — see LICENSE and THIRD_PARTY_NOTICES.md.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn primary" onclick="closeModal('about-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIBRARY SOURCE MODAL -->
+    <div class="modal-overlay" id="source-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Library Source</h2>
+                <button class="close-btn" onclick="closeModal('source-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label class="form-check"><input type="radio" name="src-kind" value="ipod"> iPod (connected device, or the iPod path in config)</label>
+                <label class="form-check"><input type="radio" name="src-kind" value="folder"> Music folder on this computer</label>
+                <div class="form-group" id="src-folder-group">
+                    <label for="src-folder">Folder</label>
+                    <div class="input-with-btn">
+                        <input type="text" id="src-folder" placeholder="e.g. C:\Users\you\Music">
+                        <button class="btn secondary electron-only" id="src-folder-browse" type="button">Browse…</button>
+                    </div>
+                    <ul class="recent-folders" id="recent-folders"></ul>
+                    <small class="form-hint">Sub-folders are scanned; .m3u/.m3u8 files become playlists. The first scan of a large folder can take a while.</small>
+                </div>
+                <div class="form-status" id="source-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('source-modal')">Cancel</button>
+                <button class="btn primary" id="source-apply-btn">Open</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIBRARIES + MAINTENANCE MODAL (js/libraries.js) -->
+    <!-- BATCH EXPORT MODAL (trang Manage): 1 định dạng cho cả danh sách, chạy thành hàng đợi -->
+    <div class="modal-overlay" id="batch-export-modal">
+        <div class="modal-card wide">
+            <div class="modal-header">
+                <h2 id="bx-title">Export Tracks</h2>
+                <button class="close-btn" id="bx-close-x">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="export-track-name" id="bx-summary"></p>
+                <div class="bx-settings" id="bx-settings">
+                    <div class="form-group">
+                        <label for="bx-format">Format (all tracks)</label>
+                        <select id="bx-format"></select>
+                        <small class="form-hint warn" id="bx-ffmpeg-hint"></small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half" id="bx-bitrate-group">
+                            <label for="bx-bitrate">Bitrate</label>
+                            <select id="bx-bitrate"></select>
+                        </div>
+                        <div class="form-group half" id="bx-flac-group">
+                            <label for="bx-flac-level">FLAC compression</label>
+                            <select id="bx-flac-level"></select>
+                        </div>
+                        <div class="form-group half" id="bx-sample-rate-group">
+                            <label for="bx-sample-rate">Sample rate</label>
+                            <select id="bx-sample-rate"></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bx-dest">Save to folder</label>
+                        <div class="input-with-btn">
+                            <input type="text" id="bx-dest" autocomplete="off">
+                            <button type="button" class="btn secondary" id="bx-browse">Choose…</button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="bx-layout">Folders</label>
+                            <select id="bx-layout">
+                                <option value="artist_album">Artist / Album</option>
+                                <option value="flat">All in one folder</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label for="bx-subfolder">Subfolder (optional)</label>
+                            <input type="text" id="bx-subfolder" placeholder="e.g. playlist name" autocomplete="off">
+                        </div>
+                        <div class="form-group half">
+                            <label for="bx-workers">Run at once</label>
+                            <select id="bx-workers"></select>
+                        </div>
+                    </div>
+                    <small class="form-hint" id="bx-workers-hint"></small>
+                    <label class="form-check"><input type="checkbox" id="bx-skip" checked> Skip files that already exist</label>
+                </div>
+                <div class="bx-progress-box" id="bx-progress-box" hidden>
+                    <progress id="bx-progress" max="1" value="0"></progress>
+                    <div class="bx-progress-text" id="bx-progress-text"></div>
+                    <ul class="bx-log" id="bx-log"></ul>
+                </div>
+                <div class="form-status" id="bx-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" id="bx-close">Close</button>
+                <button class="btn secondary" id="bx-show" hidden>Show Folder</button>
+                <button class="btn danger" id="bx-cancel" hidden>Cancel</button>
+                <button class="btn primary" id="bx-start">Export</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="libraries-modal">
+        <div class="modal-card wide libraries-card">
+            <div class="modal-header">
+                <h2>Libraries &amp; Maintenance</h2>
+                <button class="close-btn" onclick="closeModal('libraries-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <section id="libraries-section">
+                    <h4 class="settings-subhead">Libraries</h4>
+                    <p class="form-hint">Each library is a folder on this computer. Its tags are indexed in a local database so the app opens it quickly. Removing a library never deletes your music files.</p>
+                    <div class="library-add">
+                        <input type="text" id="lib-new-name" placeholder="Name (e.g. Jazz)">
+                        <div class="input-with-btn">
+                            <input type="text" id="lib-new-root" placeholder="Folder, e.g. D:\Music\Jazz">
+                            <button class="btn secondary electron-only" id="lib-new-browse" type="button">Browse…</button>
+                        </div>
+                        <button class="btn primary" id="lib-new-add" type="button"><svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#folder-plus"></use></svg> Add</button>
+                    </div>
+                    <ul class="library-manage-list" id="library-manage-list"></ul>
+                </section>
+                <section id="maintenance-section">
+                    <h4 class="settings-subhead">Maintenance</h4>
+                    <div class="maintenance-stats" id="maintenance-stats"></div>
+                    <div class="maintenance-actions">
+                        <button class="btn secondary" id="maint-rescan-all" type="button"><svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#refresh-cw"></use></svg> Rescan all libraries now</button>
+                        <button class="btn secondary" id="maint-clear-cache" type="button"><svg class="icon" aria-hidden="true"><use href="icons/sprite.svg#eraser"></use></svg> Clear cache</button>
+                    </div>
+                    <small class="form-hint">Clear cache removes cached album art and the temporary files made for streaming Apple Lossless. Per-library tools: <b>Rescan</b> reads new or changed files, <b>Rebuild</b> re-reads the tags of every file, <b>Clear</b> deletes the indexed metadata (your music files are not changed).</small>
+                    <div class="form-status" id="maintenance-status"></div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button class="btn primary" onclick="closeModal('libraries-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTEXT MENU -->
+    <div class="context-menu" id="track-context-menu">
+        <ul>
+            <li id="menu-play-next"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#list-start"></use></svg> Play Next</li>
+            <li id="menu-add-queue"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#list-plus"></use></svg> Add to Queue</li>
+            <li class="menu-separator"></li>
+            <li id="menu-edit"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#pencil"></use></svg> Edit Metadata</li>
+            <li id="menu-export"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#download"></use></svg> Export to Computer</li>
+            <li id="menu-reveal-finder"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#folder-open"></use></svg> Show in Folder</li>
+            <li class="menu-separator"></li>
+            <li id="menu-show-playlist">
+                <span><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#search"></use></svg> Show in Playlist</span>
+                <ul class="context-submenu" id="context-show-playlist-submenu">
+                    <!-- Loaded dynamically -->
+                </ul>
+            </li>
+            <li id="menu-add-playlist">
+                <span><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#list-plus"></use></svg> Add to Playlist</span>
+                <ul class="context-submenu" id="context-playlist-submenu">
+                    <!-- Loaded dynamically -->
+                </ul>
+            </li>
+            <li class="menu-separator"></li>
+            <li id="menu-delete" class="danger"><svg class="icon menu-icon" aria-hidden="true"><use href="icons/sprite.svg#trash-2"></use></svg> Delete from iPod</li>
+        </ul>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" onclick="closeModal('settings-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="set-export-dir">Export folder</label>
+                    <div class="input-with-btn">
+                        <input type="text" id="set-export-dir">
+                        <button class="btn secondary electron-only" id="set-export-dir-browse" type="button">Browse…</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="set-export-format">Default export format</label>
+                        <select id="set-export-format"></select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="set-bitrate">Bitrate (MP3/AAC)</label>
+                        <select id="set-bitrate"></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="set-sample-rate">Sample rate</label>
+                        <select id="set-sample-rate"></select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="set-flac-level">FLAC compression</label>
+                        <select id="set-flac-level"></select>
+                    </div>
+                </div>
+                <label class="form-check"><input type="checkbox" id="set-read-only"> Read-only mode (never write to the iPod)</label>
+                <label class="form-check"><input type="checkbox" id="set-stream"> Stream formats the player can't decode (e.g. Apple Lossless) by converting them on the fly</label>
+                <div class="form-group">
+                    <label for="set-ipod-convert">Importing into an iPod: files it cannot play (FLAC, OGG, Opus, WAV with DTS)</label>
+                    <select id="set-ipod-convert">
+                        <option value="auto">Convert automatically: lossless → ALAC, lossy → AAC 256 kbps</option>
+                        <option value="aac">Convert to AAC 256 kbps (plays on every iPod)</option>
+                        <option value="mp3">Convert to MP3 320 kbps</option>
+                        <option value="alac">Convert to ALAC (lossless)</option>
+                        <option value="off">Don't convert (such files are not imported)</option>
+                    </select>
+                    <small class="form-hint">Uses ffmpeg. Music folders keep every format as is.</small>
+                </div>
+                <div class="form-group">
+                    <label for="set-ffmpeg-path">ffmpeg path (empty = automatic)</label>
+                    <div class="input-with-btn">
+                        <input type="text" id="set-ffmpeg-path" placeholder="Bundled ffmpeg or ffmpeg on PATH">
+                        <button class="btn secondary electron-only" id="set-ffmpeg-browse" type="button">Browse…</button>
+                    </div>
+                    <small class="form-hint" id="set-ffmpeg-status"></small>
+                </div>
+                <h4 class="settings-subhead">Library scanning</h4>
+                <label class="form-check"><input type="checkbox" id="set-auto-rescan"> Rescan libraries when the computer is idle (desktop app)</label>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="set-idle-minutes">Idle for (minutes)</label>
+                        <input type="number" id="set-idle-minutes" min="5" max="240">
+                    </div>
+                    <div class="form-group half">
+                        <label for="set-rescan-hours">At most every (hours)</label>
+                        <input type="number" id="set-rescan-hours" min="1" max="168">
+                    </div>
+                </div>
+                <small class="form-hint" id="set-rescan-hint">Off by default. Only new, changed or deleted files are read. Last automatic scan: never.</small>
+                <div class="form-error" id="settings-error"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('settings-modal')">Cancel</button>
+                <button class="btn primary" id="settings-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPORT TRACK MODAL -->
+    <div class="modal-overlay" id="export-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Export Track</h2>
+                <button class="close-btn" onclick="closeModal('export-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="export-track-name" id="export-track-name"></p>
+                <div class="form-group">
+                    <label for="exp-format">Format</label>
+                    <select id="exp-format"></select>
+                    <small class="form-hint" id="exp-ffmpeg-hint"></small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half" id="exp-bitrate-group">
+                        <label for="exp-bitrate">Bitrate</label>
+                        <select id="exp-bitrate"></select>
+                    </div>
+                    <div class="form-group half" id="exp-flac-group">
+                        <label for="exp-flac-level">FLAC compression</label>
+                        <select id="exp-flac-level"></select>
+                    </div>
+                    <div class="form-group half" id="exp-sample-rate-group">
+                        <label for="exp-sample-rate">Sample rate</label>
+                        <select id="exp-sample-rate"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Save to</label>
+                    <label class="form-check"><input type="radio" name="exp-dest" value="folder" checked> Export folder: <span class="path-text" id="exp-folder-path"></span></label>
+                    <label class="form-check"><input type="radio" name="exp-dest" value="download"> Choose location (download)</label>
+                </div>
+                <div class="form-status" id="export-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('export-modal')">Close</button>
+                <button class="btn primary" id="export-submit-btn">Export</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPORT LIBRARY MODAL -->
+    <div class="modal-overlay" id="library-export-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="library-export-title">Export</h2>
+                <button class="close-btn" onclick="closeModal('library-export-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>What</label>
+                    <label class="form-check"><input type="radio" name="lib-kind" value="tracks" checked> Track list</label>
+                    <label class="form-check"><input type="radio" name="lib-kind" value="info"> Library information (device, totals, file types, playlists)</label>
+                </div>
+                <div class="form-group" id="lib-scope-group">
+                    <label>Tracks</label>
+                    <label class="form-check"><input type="radio" name="lib-scope" value="all" checked> Whole library</label>
+                    <label class="form-check" id="lib-scope-playlist-label"><input type="radio" name="lib-scope" value="playlist"> Current playlist: <span id="lib-scope-playlist-name"></span></label>
+                </div>
+                <div class="form-group">
+                    <label>Format</label>
+                    <label class="form-check"><input type="radio" name="lib-format" value="html" checked> HTML (view / print in a browser)</label>
+                    <label class="form-check"><input type="radio" name="lib-format" value="json"> JSON (for scripts / backup)</label>
+                </div>
+                <div class="form-group">
+                    <label>Save to</label>
+                    <label class="form-check"><input type="radio" name="lib-dest" value="folder" checked> Export folder: <span class="path-text" id="lib-folder-path"></span></label>
+                    <label class="form-check"><input type="radio" name="lib-dest" value="download"> Choose location (download)</label>
+                </div>
+                <div class="form-status" id="library-export-status"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeModal('library-export-modal')">Close</button>
+                <button class="btn primary" id="library-export-submit-btn">Export</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden audio element for preview playing -->
+    <audio id="audio-preview-player"></audio>
+
+    <script src="js/icons.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/queue.js"></script>
+    <script src="js/spectrum.js"></script>
+    <script src="js/trackinfo.js"></script>
+    <script src="js/tagcloud.js"></script>
+    <script src="js/selection.js"></script>
+    <script src="app.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/library-ui.js"></script>
+    <script src="js/libraries.js"></script>
+    <script src="js/browse.js"></script>
+    <script src="js/manage.js"></script>
+</body>
+</html>
