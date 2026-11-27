@@ -11,11 +11,11 @@ KL Music Manager is a music player and library manager for **classic iPods** (Cl
 | iPod | USB mass-storage iPods (Classic, Nano 1st–5th gen, Mini, Shuffle, Video), **Windows-formatted (FAT32)** |
 | Running from source (browser mode) | Python 3.10 or newer on Windows, macOS or Linux |
 
-> macOS 13 Ventura or newer is supported when building from source; release 1.1.0 ships a Windows installer only.
+> macOS 13 Ventura or newer is supported when building from source; release 1.1.1 ships a Windows installer only.
 
 ## Installation {#install}
 
-1. Run `KL-Music-Manager-Setup-1.1.0.exe`.
+1. Run `KL-Music-Manager-Setup-1.1.1.exe`.
 2. Windows SmartScreen may warn because the installer is not code-signed: choose **More info → Run anyway**.
 3. Pick an install folder and finish. Start **KL Music Manager** from the Start menu.
 

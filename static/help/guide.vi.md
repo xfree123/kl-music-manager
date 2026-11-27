@@ -11,11 +11,11 @@ KL Music Manager là trình phát nhạc và công cụ quản lý thư viện c
 | iPod | iPod dùng ổ USB (Classic, Nano 1–5G, Mini, Shuffle, Video), **định dạng cho Windows (FAT32)** |
 | Chạy từ mã nguồn (chế độ trình duyệt) | Python 3.10 trở lên trên Windows, macOS hoặc Linux |
 
-> macOS 13 Ventura trở lên được hỗ trợ khi tự build từ mã nguồn; bản 1.1.0 chỉ phát hành bộ cài Windows.
+> macOS 13 Ventura trở lên được hỗ trợ khi tự build từ mã nguồn; bản 1.1.1 chỉ phát hành bộ cài Windows.
 
 ## Cài đặt {#install}
 
-1. Chạy `KL-Music-Manager-Setup-1.1.0.exe`.
+1. Chạy `KL-Music-Manager-Setup-1.1.1.exe`.
 2. Windows có thể hiện cảnh báo SmartScreen vì bộ cài chưa được ký số: chọn **More info → Run anyway**.
 3. Chọn thư mục cài đặt và hoàn tất. Mở ứng dụng từ Start menu: **KL Music Manager**.
 

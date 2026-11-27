@@ -46,6 +46,34 @@ READ_ONLY_ALLOWED = [
 ]
 
 
+LOCAL_HOSTNAMES = ("127.0.0.1", "localhost", "[::1]")
+SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
+
+
+def _host_name(host: str) -> str:
+    """'127.0.0.1:5055' -> '127.0.0.1', '[::1]:5055' -> '[::1]'."""
+    if host.startswith("["):
+        return host.split("]", 1)[0] + "]"
+    return host.rsplit(":", 1)[0] if ":" in host else host
+
+
+@app.before_request
+def reject_foreign_requests():
+    """Backend chỉ phục vụ chính app trên máy này.
+
+    - Host phải là 127.0.0.1 / localhost: chặn DNS rebinding (tên miền lạ trỏ về 127.0.0.1
+      sẽ thành cùng origin với backend và gọi được mọi API).
+    - Request ghi có Origin phải cùng origin: chặn CSRF (form / fetch no-cors từ trang khác).
+    """
+    host = request.host.lower()
+    if _host_name(host) not in LOCAL_HOSTNAMES:
+        return jsonify({"success": False, "error": "Forbidden host"}), 403
+    origin = request.headers.get("Origin")
+    if request.method not in SAFE_METHODS and origin is not None:
+        if origin.lower() != f"http://{host}":
+            return jsonify({"success": False, "error": "Cross-origin request refused"}), 403
+
+
 @app.before_request
 def restrict_write_operations():
     # Block modifying requests in Read-Only mode, except the READ_ONLY_ALLOWED list

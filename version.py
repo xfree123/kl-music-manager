@@ -4,7 +4,7 @@ Cá nhân hoá: xem PERSONALIZE.md (sửa AUTHOR/HOMEPAGE ở đây và trong pa
 """
 
 APP_NAME = "KL Music Manager"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 LICENSE = "GPL-3.0-or-later"
 AUTHOR = "xfree123"
 HOMEPAGE = "https://github.com/xfree123/kl-music-manager"

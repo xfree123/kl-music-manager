@@ -30,22 +30,26 @@ def reveal_command(path: str, system: Optional[str] = None) -> List[str]:
 
 def _reveal_macos_finder(path: str) -> bool:
     """Dùng lại cửa sổ Finder đang mở phía trước và chọn file. True nếu thành công."""
-    applescript = f'''
-    tell application "Finder"
-        set fileAlias to (POSIX file "{path}") as alias
-        if (count of Finder windows) is 0 then
-            reveal fileAlias
-        else
-            set target of Finder window 1 to container of fileAlias
-            select fileAlias
-        end if
-        activate
-    end tell
-    '''
+    # Đường dẫn truyền qua argv, KHÔNG ghép vào mã AppleScript: tên file có dấu " sẽ
+    # thoát khỏi chuỗi và chạy được `do shell script` (chèn lệnh).
+    applescript = """
+    on run argv
+        tell application "Finder"
+            set fileAlias to (POSIX file (item 1 of argv)) as alias
+            if (count of Finder windows) is 0 then
+                reveal fileAlias
+            else
+                set target of Finder window 1 to container of fileAlias
+                select fileAlias
+            end if
+            activate
+        end tell
+    end run
+    """
     try:
         # Timeout ngắn: tránh treo khi người dùng bỏ qua hộp thoại cấp quyền của macOS.
         subprocess.run(
-            ["osascript", "-e", applescript], check=True, timeout=1.5, capture_output=True
+            ["osascript", "-e", applescript, path], check=True, timeout=1.5, capture_output=True
         )
         return True
     except (subprocess.SubprocessError, OSError):

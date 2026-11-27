@@ -74,6 +74,21 @@ def _is_iso_or_empty(v: Any) -> bool:
     return True
 
 
+def _is_ffmpeg_path(v: Any) -> bool:
+    """Rỗng (tự dò) hoặc đường dẫn cục bộ tới file tên ffmpeg*: chặn trỏ tới chương trình khác
+    hay đường dẫn mạng (UNC) — giá trị này được chạy bằng subprocess khi export."""
+    if not isinstance(v, str):
+        return False
+    if v == "":
+        return True
+    if v.startswith(("\\\\", "//")):
+        return False
+    parts = v.replace("\\", "/").split("/")
+    if ".." in parts:
+        return False
+    return parts[-1].lower().startswith("ffmpeg")
+
+
 _OPTION_RULES = {
     "bitrate_kbps": lambda v: _is_int(v) and v in converter.ALL_BITRATES,
     "sample_rate": lambda v: _is_int(v) and v in converter.SAMPLE_RATES,
@@ -86,7 +101,7 @@ _RULES = {
     "export_format": lambda v: v in converter.FORMATS,
     "stream_unsupported": lambda v: isinstance(v, bool),
     "ipod_import_convert": lambda v: v in converter.IPOD_IMPORT_MODES,
-    "ffmpeg_path": lambda v: isinstance(v, str),
+    "ffmpeg_path": _is_ffmpeg_path,
     "library_source": lambda v: v in ("ipod", "folder", "default"),
     "library_folder": lambda v: isinstance(v, str),
     "recent_folders": lambda v: (

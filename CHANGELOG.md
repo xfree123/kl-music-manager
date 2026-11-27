@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 — 2026-11-27
+
+### Security
+- The backend refuses requests from other websites (Host and Origin checks), so a web page can no longer call the local API (DNS rebinding / CSRF).
+- *ffmpeg path* setting accepts only a local file named `ffmpeg*`.
+- macOS *Show in Finder* passes the file path to AppleScript as an argument, so file names containing quotes cannot inject commands.
+
 ## 1.1.0 — 2026-11-27
 
 ### Added
